@@ -111,8 +111,6 @@ th{background:#1a1a2e;color:#fff;padding:11px 14px;text-align:left;font-size:12p
 td{padding:10px 14px;border-bottom:1px solid #f0f0f0;font-size:13px}
 tr:hover td{background:#f8f9fa}
 .tag{display:inline-block;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600}
-.t-bank_card{background:#fde8e8;color:#c0392b}.t-wallet{background:#e8f0fe;color:#1a73e8}
-.t-url{background:#fef7e0;color:#b06000}.t-phone{background:#e6f4ea;color:#137333}
 .mono{font-family:Consolas,monospace;font-size:12px;color:#555}
 .empty{text-align:center;padding:50px;color:#bbb}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
@@ -145,10 +143,6 @@ tr:hover td{background:#f8f9fa}
     <div class="toolbar">
       <select id="typeFilter" onchange="loadLeads()">
         <option value="">全部类型</option>
-        <option value="bank_card">银行卡号</option>
-        <option value="wallet">钱包地址</option>
-        <option value="url">钓鱼网址</option>
-        <option value="phone">手机号</option>
       </select>
       <input type="text" id="search" placeholder="搜索线索内容/会话ID..." oninput="loadLeads()">
       <button class="btn btn-export" onclick="exportLeads()">导出CSV</button>
@@ -180,8 +174,18 @@ tr:hover td{background:#f8f9fa}
   </div>
 </div>
 <script>
-const typeName={bank_card:'银行卡',wallet:'钱包',url:'网址',phone:'手机号'};
-let ruleNames={};
+// 调色板：8 种浅色对 [背景, 文字]，按规则顺序循环；tag 颜色按 type 字符串哈希取色，保证同类型稳定
+const PALETTE=[['#fde8e8','#c0392b'],['#e8f0fe','#1a73e8'],['#fef7e0','#b06000'],['#e6f4ea','#137333'],['#f3e8fd','#7d3c98'],['#e0f7fa','#006d75'],['#fce4ec','#a93226'],['#eef1f2','#7f8c8d']];
+let RULES=[], ruleNames={};
+function typeColor(t){let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))>>>0;return PALETTE[h%PALETTE.length];}
+function tagHtml(t){const c=typeColor(t);return `<span class="tag" style="background:${c[0]};color:${c[1]}">${ruleNames[t]||t}</span>`;}
+async function loadRulesData(){
+  RULES=await fetch('/api/rules').then(r=>r.json());
+  ruleNames={};RULES.forEach(r=>ruleNames[r.type]=r.name);
+  const sel=document.getElementById('typeFilter');
+  sel.innerHTML='<option value="">全部类型</option>'+RULES.map(r=>`<option value="${r.type}">${r.name}</option>`).join('');
+  return RULES;
+}
 function switchTab(t){
   document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
   event.target.classList.add('active');
@@ -193,14 +197,14 @@ function switchTab(t){
   if(t==='rules')loadRules();
 }
 async function loadStats(){
-  const s=await fetch('/api/stats').then(r=>r.json());
-  document.getElementById('stats').innerHTML=`
-  <div class="stat-card"><div class="num c-red">${s.total||0}</div><div class="lbl">总线索</div></div>
-  <div class="stat-card"><div class="num c-red">${s.bank_card||0}</div><div class="lbl">银行卡</div></div>
-  <div class="stat-card"><div class="num c-blue">${s.wallet||0}</div><div class="lbl">钱包地址</div></div>
-  <div class="stat-card"><div class="num c-orange">${s.url||0}</div><div class="lbl">钓鱼网址</div></div>
-  <div class="stat-card"><div class="num c-green">${s.phone||0}</div><div class="lbl">手机号</div></div>
-  <div class="stat-card"><div class="num c-gray">${s.sessions||0}</div><div class="lbl">会话数</div></div>`;
+  const [s,rules]=await Promise.all([fetch('/api/stats').then(r=>r.json()),Promise.resolve(RULES)]);
+  const cards=[`<div class="stat-card"><div class="num c-red">${s.total||0}</div><div class="lbl">总线索</div></div>`];
+  rules.filter(r=>r.enabled).forEach((r,i)=>{
+    const c=PALETTE[i%PALETTE.length];
+    cards.push(`<div class="stat-card"><div class="num" style="color:${c[1]}">${s[r.type]||0}</div><div class="lbl">${r.name}</div></div>`);
+  });
+  cards.push(`<div class="stat-card"><div class="num c-gray">${s.sessions||0}</div><div class="lbl">会话数</div></div>`);
+  document.getElementById('stats').innerHTML=cards.join('');
 }
 async function loadLeads(){
   const t=document.getElementById('typeFilter').value;
@@ -210,7 +214,7 @@ async function loadLeads(){
   if(!leads.length){body.innerHTML='<tr><td colspan="7" class="empty">暂无线索</td></tr>';return}
   body.innerHTML=leads.map(l=>`<tr>
     <td>${l.id}</td><td class="mono">${l.session_id.slice(0,16)}...</td>
-    <td><span class="tag t-${l.lead_type}">${typeName[l.lead_type]||l.lead_type}</span></td>
+    <td>${tagHtml(l.lead_type)}</td>
     <td class="mono">${l.lead_value}</td><td>${(l.confidence*100).toFixed(0)}%</td>
     <td>${l.turn_number}</td><td>${l.created_at}</td></tr>`).join('');
 }
@@ -245,11 +249,8 @@ function closeModal(){document.getElementById('modal').classList.remove('show')}
 
 // ===== 抽取规则管理 =====
 async function loadRules(){
-  const rules=await fetch('/api/rules').then(r=>r.json());
-  ruleNames={};rules.forEach(r=>ruleNames[r.type]=r.name);
-  Object.assign(typeName,ruleNames);           // 线索表的类型标签同步用新名称
-  const sel=document.getElementById('typeFilter');
-  sel.innerHTML='<option value="">全部类型</option>'+rules.map(r=>`<option value="${r.type}">${r.name}</option>`).join('');
+  const rules=await loadRulesData();
+  loadStats();  // 规则增删改后统计卡和下拉同步刷新
   const body=document.getElementById('rulesBody');
   if(!rules.length){body.innerHTML='<tr><td colspan="6" class="empty">暂无规则</td></tr>';return}
   body.innerHTML=rules.map(r=>`<tr>
@@ -297,7 +298,7 @@ function exportLeads(){
   const t=document.getElementById('typeFilter').value;
   window.open(`/api/leads?lead_type=${t}`);
 }
-loadStats();loadLeads();
+loadRulesData().then(()=>{loadStats();loadLeads()});
 setInterval(()=>{loadStats();loadLeads()},10000);
 </script>
 </body></html>"""
