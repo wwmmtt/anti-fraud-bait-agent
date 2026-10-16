@@ -79,7 +79,7 @@ pip install modelscope
 modelscope download --model BAAI/bge-base-zh-v1.5 --local_dir model/bge-base-zh-v1.5
 # Or HuggingFace: huggingface-cli download BAAI/bge-base-zh-v1.5 --local-dir model/bge-base-zh-v1.5
 
-# 4. Run (vector index builds automatically on startup)
+# 4. Run (vector index builds / syncs new docs automatically on startup)
 python src/demo_cli.py  # CLI: chat with "Auntie Wang" in the terminal
 python src/main.py      # or serve HTTP: API docs at /docs, leads dashboard at /leads
 ```
@@ -113,7 +113,7 @@ anti-fraud-bait/
 │   ├── llm/chat_llm.py      # LLM client (any OpenAI-compatible endpoint via .env)
 │   ├── rag/                 # FAISS vector store + scam playbook KB
 │   │   ├── vector_store.py
-│   │   └── seed_data/       #   4 sample scam scripts
+│   │   └── seed_data/       #   5 sample scam scripts
 │   ├── storage/             # SQLite (sessions / messages / leads)
 │   ├── api/                 # FastAPI routers + chat page + leads dashboard
 │   ├── config/              # pydantic-settings
@@ -166,7 +166,7 @@ That's the real bottleneck for production-grade anti-fraud in China — not the 
 
 ## 🤝 Contributing
 
-- **Add a scam script**: drop a `.txt` into `rag/seed_data/`, delete `db/faiss_index/` and restart (auto-rebuild)
+- **Add a scam script**: drop a `.txt` into `rag/seed_data/` and restart — auto-indexed incrementally (no manual init, no index deletion)
 - **Add a tool**: write a `@tool` function in `agent/tools.py`, the agent picks it up
 - **Add a persona**: drop a new `src/agent/prompts/<name>.md` (frontmatter + prompt body, like a skill) — no code changes needed
 - **Swap LLM**: edit `.env`, any OpenAI-compatible endpoint works

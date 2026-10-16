@@ -73,7 +73,7 @@ pip install modelscope
 modelscope download --model BAAI/bge-base-zh-v1.5 --local_dir model/bge-base-zh-v1.5
 # 或 HuggingFace: huggingface-cli download BAAI/bge-base-zh-v1.5 --local-dir model/bge-base-zh-v1.5
 
-# 4. 跑起来（向量库启动时自动构建，无需手动初始化）
+# 4. 跑起来（向量库启动时自动构建 / 增量同步新文档，无需手动初始化）
 python src/demo_cli.py  # 终端直接跟"王阿姨"对话
 python src/main.py      # 或起 HTTP 服务：API 文档 /docs，线索后台 /leads
 ```
@@ -107,7 +107,7 @@ anti-fraud-bait/
 │   ├── llm/chat_llm.py      # LLM 客户端（.env 配置任意 OpenAI 兼容接口）
 │   ├── rag/                 # FAISS 向量库 + 诈骗剧本知识库
 │   │   ├── vector_store.py
-│   │   └── seed_data/       #   4 类诈骗剧本样本
+│   │   └── seed_data/       #   5 类诈骗剧本样本
 │   ├── storage/             # SQLite（sessions/messages/leads 三表）
 │   ├── api/                 # FastAPI 路由 + 聊天页 + 线索后台页面
 │   ├── config/              # pydantic-settings 配置
@@ -161,7 +161,7 @@ anti-fraud-bait/
 
 这个项目就是拿来折腾的：
 
-- **加新诈骗剧本**：往 `rag/seed_data/` 扔一个 txt，删掉 `db/faiss_index/` 重启（自动重建）
+- **加新诈骗剧本**：往 `rag/seed_data/` 扔一个 txt，重启服务自动增量入库（无需删索引、无需手动初始化）
 - **加新工具**：在 `agent/tools.py` 写个 `@tool` 函数，Agent 自动学会用
 - **换受害者人设**：在 `src/agent/prompts/` 加一个 md 文档（frontmatter 元数据 + 提示词正文，类似 skill），不用改代码
 - **换 LLM**：改 `.env` 三个值，任何 OpenAI 兼容接口都能插
