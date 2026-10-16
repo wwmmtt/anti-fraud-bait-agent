@@ -1,0 +1,44 @@
+[
+  {
+    "type": "bank_card",
+    "name": "银行卡号",
+    "enabled": true,
+    "confidence": 0.8,
+    "regex": "(?<!\\d)[1-9]\\d{15,18}(?!\\d)"
+  },
+  {
+    "type": "wallet",
+    "name": "钱包地址",
+    "enabled": true,
+    "confidence": 0.95,
+    "regex": "(?<![A-Za-z0-9])T[A-Za-z0-9]{33}(?![A-Za-z0-9])"
+  },
+  {
+    "type": "url",
+    "name": "钓鱼网址",
+    "enabled": true,
+    "confidence": 0.9,
+    "regex": "https?://[^\\s，。、]+"
+  },
+  {
+    "type": "phone",
+    "name": "手机号",
+    "enabled": true,
+    "confidence": 0.7,
+    "regex": "(?<!\\d)1[3-9]\\d{9}(?!\\d)"
+  },
+  {
+    "type": "id_card",
+    "name": "身份证号",
+    "enabled": true,
+    "confidence": 0.85,
+    "regex": "(?<!\\d)[1-9]\\d{5}(?:19|20)\\d{2}(?:0[1-9]|1[0-2])(?:[0-2]\\d|3[01])\\d{3}[0-9Xx](?!\\d)"
+  },
+  {
+    "type": "wexin",
+    "name": "微信",
+    "enabled": true,
+    "confidence": 0.8,
+    "regex": null
+  }
+]

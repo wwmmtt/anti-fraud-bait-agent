@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 本地数据库 & 向量索引（运行时自动生成）
+db/
+*.faiss
+*.pkl
+*.sqlite
+*.db
+
+# 日志
+logs/
+*.log
+
+# 大模型文件（>100MB，clone 后自行下载 bge-base-zh-v1.5 放进 model/）
+model/*/pytorch_model.bin
+model/*/*.gguf
+
+# 临时调试文件
+test_out.txt
+test_react.py
+
+# OS
+.DS_Store
+Thumbs.db

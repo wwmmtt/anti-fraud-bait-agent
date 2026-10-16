@@ -1,0 +1,24 @@
+# ===== Agent 框架 =====
+# 版本 = 项目开发时验证通过的版本（Python 3.12）
+langgraph==0.3.31
+langchain-openai==0.3.31          # DeepSeek 走 OpenAI 兼容协议
+langchain-huggingface==0.3.1      # 加载本地 bge embedding 模型
+langchain-community==0.3.31       # FAISS 向量库封装
+langchain-text-splitters==0.3.11  # 文本切片
+
+# ===== 向量模型 =====
+# 本地 model/bge-base-zh-v1.5 直接加载，不依赖 ollama
+sentence-transformers==6.1.0
+torch==2.14.1                     # CPU 版即可：pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+faiss-cpu==1.15.1
+
+# ===== Web 服务 =====
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic-settings==2.11.0
+
+# ===== 工具库 =====
+regex==2026.9.29
+httpx==0.28.1
+loguru==0.7.3
+python-dotenv==1.1.1
